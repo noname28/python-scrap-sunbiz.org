@@ -1,3 +1,4 @@
+import openpyxl
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -14,7 +15,8 @@ class ResultBec:
     self.zip_code = zip_code
 
 # Florida eyaleti için arama URL'si
-url = "https://search.sunbiz.org/Inquiry/CorporationSearch/SearchResults?inquiryType=ZipCode&searchTerm=10036"
+wSearchTerm = 10036;
+url = "https://search.sunbiz.org/Inquiry/CorporationSearch/SearchResults?inquiryType=ZipCode&searchTerm=" + str(wSearchTerm)
 
 # Selenium WebDriver nesnesi oluştur
 driver = webdriver.Chrome()
@@ -34,7 +36,7 @@ try:
             button.click()
             
         wTooMuch = wTooMuch + 1
-        if wTooMuch > 1000:
+        if wTooMuch > 99000:
             wEOF = 1
         # Tablo öğesini bekle
         table = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "search-results")))
@@ -56,8 +58,23 @@ try:
            
 
 finally:
+    # Sonuç listesini kullanın...
+    # print(result_list)
+    workbook = openpyxl.Workbook()
+    worksheet = workbook.create_sheet(str(wSearchTerm))
+    # Başlık satırını yaz
+    worksheet.cell(row=1, column=1).value = "Şirket Adı"
+    worksheet.cell(row=1, column=2).value = "Sicil Numarası"
+    worksheet.cell(row=1, column=3).value = "Durum"
+    worksheet.cell(row=1, column=4).value = "Posta Kodu"
+
+    # Sonuçları satır satır yaz
+    for i, result in enumerate(result_list, start=2):
+        worksheet.cell(row=i, column=1).value = result.corporate_name
+        worksheet.cell(row=i, column=2).value = result.document_number
+        worksheet.cell(row=i, column=3).value = result.status
+        worksheet.cell(row=i, column=4).value = result.zip_code
+    workbook.save("ZipKod.xlsx")
     # Her durumda tarayıcıyı kapat
     driver.quit()
 
-# Sonuç listesini kullanın...
-print(result_list)
